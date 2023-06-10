@@ -6,7 +6,7 @@ from .forms import CustomUserCreationForm, CreateWorkoutForm, DeleteWorkoutForm,
 from .models import Workout, UserWorkout, WorkoutExercise, Goal, CustomUser, UserExercise
 from django.shortcuts import render
 from .forms import WorkoutForm
-from datetime import datetime, timedelta
+from datetime import datetime
 
 
 def home(request):
@@ -117,14 +117,14 @@ def change_training_weight_view(request, id):
 
 def workout_selection_view(request, id):
     workout = Workout.objects.get(id=id)
+    exercises = WorkoutExercise.objects.filter(workout=workout)
     if request.method == 'POST':
         a = UserWorkout.objects.get(user=request.user, workout=workout)
         a.number_of_workouts_done += 1
         a.save()
         CustomUser.objects.filter(id=request.user.id).update(
             calories_burned=CustomUser.objects.get(id=request.user.id).calories_burned + workout.calories)
-        return redirect('workout_start', rest_time=workout.duration)
-    exercises = WorkoutExercise.objects.filter(workout=workout)
+        return redirect('workout_start', rest_time=exercises[0].rest_time)
 
     return render(request, 'workouts_selection.html',
                   {'workout': workout, 'exercises': exercises})
